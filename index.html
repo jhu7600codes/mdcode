@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MDCode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #181818;
+    --border: #2a2a2a;
+    --gray: #888;
+    --light: #d0d0d0;
+    --white: #f0f0f0;
+    --green: #4ade80;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--light);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 48px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(14,14,14,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .logo svg { width: 80px; height: 49px; }
+  .logo-text { font-size: 20px; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  nav .spacer { flex: 1; }
+  nav a { color: var(--gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: color 0.2s; }
+  nav a:hover { color: var(--white); }
+  .nav-cta { background: var(--surface); border: 1px solid var(--border); color: var(--white) !important; padding: 8px 18px; border-radius: 6px; transition: border-color 0.2s !important; }
+  .nav-cta:hover { border-color: var(--gray) !important; }
+
+  .hero {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding: 120px 48px 80px; position: relative;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(136,136,136,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--gray); font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; padding: 6px 14px; border-radius: 999px; margin-bottom: 32px;
+  }
+  .badge span { color: var(--green); }
+
+  h1 { font-size: clamp(48px, 8vw, 88px); font-weight: 800; color: var(--white); line-height: 1; letter-spacing: -3px; margin-bottom: 24px; }
+  h1 em { font-style: normal; color: var(--gray); }
+
+  .hero-sub { font-size: 18px; color: var(--gray); max-width: 520px; line-height: 1.6; margin-bottom: 48px; font-weight: 400; }
+
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  .hero-install-cmd {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 20px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    color: var(--green); max-width: 560px;
+  }
+  .hero-install-cmd .prompt { color: var(--gray); user-select: none; }
+
+  .btn-primary {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--white); color: #0e0e0e;
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700;
+    padding: 14px 28px; border-radius: 8px; text-decoration: none; transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-logo { width: 36px; height: 22px; flex-shrink: 0; }
+
+  .btn-secondary {
+    background: transparent; color: var(--light);
+    font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    padding: 14px 28px; border-radius: 8px; border: 1px solid var(--border);
+    text-decoration: none; transition: border-color 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--gray); }
+
+  .preview { margin: 80px auto; max-width: 860px; padding: 0 48px; }
+
+  .code-window { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .code-titlebar { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--border); background: #141414; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+  .code-filename { margin-left: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gray); }
+
+  pre { padding: 28px 32px; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.8; overflow-x: auto; }
+  .c-cmd { color: #c792ea; } .c-str { color: #c3e88d; } .c-var { color: #82aaff; } .c-op { color: #89ddff; } .c-cmt { color: #546e7a; }
+
+  .features { padding: 80px 48px; max-width: 1100px; margin: 0 auto; }
+  .section-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gray); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  .section-title { font-size: clamp(28px, 4vw, 42px); font-weight: 800; color: var(--white); letter-spacing: -1px; margin-bottom: 56px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .feature-card { background: var(--surface); padding: 36px; transition: background 0.2s; }
+  .feature-card:hover { background: #1e1e1e; }
+  .feature-icon { font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--gray); margin-bottom: 16px; }
+  .feature-title { font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 10px; }
+  .feature-desc { font-size: 14px; color: var(--gray); line-height: 1.6; font-weight: 400; }
+
+  /* GUIDE */
+  .guide { padding: 80px 48px; max-width: 860px; margin: 0 auto; }
+  .guide-steps { display: flex; flex-direction: column; gap: 2px; margin-top: 40px; }
+
+  .step { background: var(--surface); border: 1px solid var(--border); }
+  .step:first-child { border-radius: 12px 12px 0 0; }
+  .step:last-child  { border-radius: 0 0 12px 12px; }
+
+  .step-header { display: flex; align-items: center; gap: 16px; padding: 24px 28px; cursor: pointer; user-select: none; transition: background 0.2s; }
+  .step-header:hover { background: #1e1e1e; }
+  .step-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gray); background: var(--border); padding: 4px 10px; border-radius: 4px; flex-shrink: 0; }
+  .step-title { font-size: 16px; font-weight: 700; color: var(--white); flex: 1; }
+  .step-arrow { color: var(--gray); font-size: 18px; transition: transform 0.2s; }
+  .step.open .step-arrow { transform: rotate(90deg); }
+
+  .step-body { display: none; padding: 0 28px 28px; border-top: 1px solid var(--border); }
+  .step.open .step-body { display: block; }
+  .step-body p { font-size: 14px; color: var(--gray); line-height: 1.7; margin: 16px 0 12px; font-weight: 400; }
+  .step-body code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: #0e0e0e; border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; color: var(--green); }
+  .step-body pre { background: #0e0e0e; border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; font-size: 13px; margin-top: 12px; }
+
+  /* INSTALL */
+  .install { padding: 80px 48px; max-width: 860px; margin: 0 auto; text-align: center; }
+  .install-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 48px; margin-top: 40px; }
+  .install-cmd { display: flex; align-items: center; gap: 12px; background: #0e0e0e; border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--green); margin-bottom: 16px; text-align: left; }
+  .install-cmd .prompt { color: var(--gray); user-select: none; }
+  .copy-btn { margin-left: auto; background: var(--border); border: none; color: var(--gray); font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+  .copy-btn:hover { background: #333; color: var(--white); }
+  .install-note { font-size: 13px; color: var(--gray); font-family: 'JetBrains Mono', monospace; }
+
+  footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; align-items: center; gap: 16px; color: var(--gray); font-size: 13px; }
+  footer .spacer { flex: 1; }
+  footer a { color: var(--gray); text-decoration: none; transition: color 0.2s; }
+  footer a:hover { color: var(--white); }
+
+  @keyframes fadein { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .hero > * { animation: fadein 0.6s ease both; }
+  .hero > *:nth-child(1) { animation-delay: 0.0s; }
+  .hero > *:nth-child(2) { animation-delay: 0.1s; }
+  .hero > *:nth-child(3) { animation-delay: 0.2s; }
+  .hero > *:nth-child(4) { animation-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#">
+    <svg viewBox="0 0 208 128" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <mask id="m0">
+          <rect width="208" height="128" fill="white"/>
+          <path d="M30 98V30h20l20 25 20-25h20v68H90V59L70 84 50 59v39z" fill="black"/>
+          <polyline points="132,38 118,64 132,90" stroke="black" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <line x1="155" y1="34" x2="143" y2="94" stroke="black" stroke-width="10" stroke-linecap="round"/>
+          <polyline points="168,38 182,64 168,90" stroke="black" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </mask>
+      </defs>
+      <rect width="198" height="118" x="5" y="5" ry="10" fill="#f0f0f0" mask="url(#m0)"/>
+    </svg>
+    <span class="logo-text">MDCode</span>
+  </a>
+  <div class="spacer"></div>
+  <a href="#features">Features</a>
+  <a href="#guide">Guide</a>
+  <a href="#install">Install</a>
+  <a href="https://github.com/jhu7600codes/mdcode" target="_blank">GitHub</a>
+  <a href="https://github.com/jhu7600codes/mdcode/tree/main/examples" class="nav-cta" target="_blank">Examples</a>
+</nav>
+
+<section class="hero">
+  <div class="badge"><span>#</span> markdown-based scripting language</div>
+  <h1>Code lives in<br><em>your docs.</em></h1>
+  <p class="hero-sub">MDCode turns markdown heading syntax into executable scripts. Every <code style="font-family:JetBrains Mono,monospace;color:#ccc">#</code> is a command. Readable by anyone, runnable by everything.</p>
+  <div class="hero-btns">
+    <div class="hero-install-cmd">
+      <span class="prompt">$</span>
+      <span id="hero-cmd">curl -fsSL https://raw.githubusercontent.com/jhu7600codes/mdcode/main/install.sh | bash</span>
+      <button class="copy-btn" onclick="heroCopy()">copy</button>
+    </div>
+    <a class="btn-secondary" href="https://github.com/jhu7600codes/mdcode" target="_blank">View on GitHub →</a>
+  </div>
+</section>
+
+<div class="preview">
+  <div class="code-window">
+    <div class="code-titlebar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <span class="code-filename">hello.md</span>
+    </div>
+    <pre><span class="c-cmt">#import lib-mdcode</span>
+<span class="c-cmt">#import lib-autoVar</span>
+
+<span class="c-cmd">#var</span> <span class="c-var">name</span> <span class="c-op">(create)</span> <span class="c-str">| MDCode</span>
+<span class="c-cmd">#print</span> <span class="c-str">| Hello from </span><span class="c-op">+</span> <span class="c-var">name</span> <span class="c-str">| !</span>
+
+<span class="c-cmd">#env</span> HOME <span class="c-op">></span> <span class="c-var">homeDir</span>
+<span class="c-cmd">#print</span> <span class="c-str">| Running from: </span><span class="c-op">+</span> <span class="c-var">homeDir</span>
+
+<span class="c-cmd">#os</span> <span class="c-str">| uname -r</span> <span class="c-op">></span> <span class="c-var">kernel</span>
+<span class="c-op">###</span><span class="c-cmd">print</span> <span class="c-str">| Kernel: </span><span class="c-op">+</span> <span class="c-var">kernel</span>
+
+<span class="c-cmd">#exit</span> <span class="c-str">| 0</span></pre>
+  </div>
+</div>
+
+<section class="features" id="features">
+  <p class="section-label">Why MDCode</p>
+  <h2 class="section-title">Scripting that reads like docs.</h2>
+  <div class="grid">
+    <div class="feature-card">
+      <div class="feature-icon">#</div>
+      <div class="feature-title">Heading syntax</div>
+      <div class="feature-desc">Commands are markdown headings. Depth increases by +2 per level. Anyone can read it without knowing the language.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">|</div>
+      <div class="feature-title">Explicit literals</div>
+      <div class="feature-desc">Strings, numbers and booleans use <code style="font-family:JetBrains Mono,monospace">|</code>. Bare words are always variables. No ambiguity, ever.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">/</div>
+      <div class="feature-title">Unix-style piping</div>
+      <div class="feature-desc">Chain commands with <code style="font-family:JetBrains Mono,monospace">/</code> just like the shell. Pipe output directly into the next command's input.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">lib</div>
+      <div class="feature-title">Library system</div>
+      <div class="feature-desc">Import <code style="font-family:JetBrains Mono,monospace">lib-autoVar</code> for automatic variable passing. Import <code style="font-family:JetBrains Mono,monospace">lib-visual</code> for native GUI windows.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&gt;</div>
+      <div class="feature-title">Scoped variables</div>
+      <div class="feature-desc">Regular vars live globally. onetimeVars are block-scoped and only accessible at the right depth — by design.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">py</div>
+      <div class="feature-title">Pure Python</div>
+      <div class="feature-desc">Single file interpreter, stdlib only. No dependencies to install. Works anywhere Python 3.10+ is available.</div>
+    </div>
+  </div>
+</section>
+
+<section class="guide" id="guide">
+  <p class="section-label">Guide</p>
+  <h2 class="section-title">Learn MDCode in 5 steps.</h2>
+  <div class="guide-steps">
+
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <span class="step-num">01</span>
+        <span class="step-title">Commands & depth</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <p>Every line starts with <code>#</code>. The number of <code>#</code> symbols defines nesting depth, incrementing by <code>+2</code> per level. <code>##</code> is special — it accesses onetimeVars from the parent block.</p>
+        <pre><span class="c-cmd">#print</span> <span class="c-str">| top level</span>
+<span class="c-op">###</span><span class="c-cmd">print</span> <span class="c-str">| child of above</span>
+<span class="c-op">#####</span><span class="c-cmd">print</span> <span class="c-str">| child of child</span>
+<span class="c-op">##</span><span class="c-cmd">print</span> <span class="c-str">| accesses parent onetimeVar</span></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <span class="step-num">02</span>
+        <span class="step-title">Arguments: strings, vars, concat</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <p><code>|</code> starts a literal value. A bare word is a variable. Use <code>+</code> to concatenate anything.</p>
+        <pre><span class="c-cmd">#print</span> <span class="c-str">| hello world</span>          <span class="c-cmt">← string</span>
+<span class="c-cmd">#print</span> <span class="c-var">myVar</span>                 <span class="c-cmt">← variable</span>
+<span class="c-cmd">#print</span> <span class="c-str">| hello </span><span class="c-op">+</span> <span class="c-var">userName</span>    <span class="c-cmt">← str + var</span>
+<span class="c-cmd">#print</span> <span class="c-var">vr</span> <span class="c-op">+</span> <span class="c-str">| it worked</span>      <span class="c-cmt">← var + str</span></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <span class="step-num">03</span>
+        <span class="step-title">Assignment & piping</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <p>Use <code>&gt;</code> to store output. Use <code>/</code> to pipe output into the next command. Pipes chain.</p>
+        <pre><span class="c-cmd">#os</span> <span class="c-str">| uname -r</span> <span class="c-op">></span> <span class="c-var">kernel</span>
+<span class="c-cmd">#print</span> <span class="c-str">| kernel: </span><span class="c-op">+</span> <span class="c-var">kernel</span>
+
+<span class="c-cmd">#print</span> <span class="c-str">| y</span> <span class="c-op">/</span> <span class="c-cmd">input</span> <span class="c-str">| continue?</span></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <span class="step-num">04</span>
+        <span class="step-title">Variables & onetimeVars</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <p>Create or edit vars with <code>#var</code>. onetimeVars are block-scoped — only accessible one level deeper via <code>##</code>.</p>
+        <pre><span class="c-cmd">#var</span> <span class="c-var">greeting</span> <span class="c-op">(create)</span> <span class="c-str">| hello</span>
+<span class="c-cmd">#var</span> <span class="c-var">greeting</span> <span class="c-op">(edit)</span> <span class="c-str">| goodbye</span>
+
+<span class="c-cmd">#var</span> <span class="c-var">data</span> <span class="c-op">(change)</span> type <span class="c-op">></span> <span class="c-var">onetimeVar</span>
+<span class="c-op">##</span><span class="c-cmd">print</span> <span class="c-str">| data: </span><span class="c-op">+</span> <span class="c-var">data</span></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <span class="step-num">05</span>
+        <span class="step-title">Libraries</span>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <p><code>lib-mdcode</code> is the core, always import it. <code>lib-autoVar</code> auto-exposes <code>strVar</code> and log vars. <code>lib-visual</code> builds native GTK windows with navbar and webview.</p>
+        <pre><span class="c-cmd">#import</span> lib-mdcode
+<span class="c-cmd">#import</span> lib-autoVar
+
+<span class="c-cmd">#readFile</span> <span class="c-str">| ~/.config/hypr.log</span>
+<span class="c-op">##</span><span class="c-cmd">print</span> <span class="c-var">strVar</span>
+
+<span class="c-cmd">#import</span> lib-visual
+<span class="c-cmd">#visual</span> <span class="c-str">| My App</span>
+<span class="c-op">###</span><span class="c-cmd">topbar</span>
+<span class="c-op">#####</span><span class="c-cmd">navbar</span> <span class="c-str">| (button) Home (gotoWeb) https://example.com</span>
+<span class="c-op">#######</span><span class="c-cmd">webview</span> <span class="c-str">| https://example.com</span></pre>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="install" id="install">
+  <p class="section-label">Get MDCode</p>
+  <h2 class="section-title">One command install.</h2>
+  <div class="install-box">
+    <div class="install-cmd">
+      <span class="prompt">$</span>
+      <span id="cmd-text">curl -fsSL https://raw.githubusercontent.com/jhu7600codes/mdcode/main/install.sh | bash</span>
+      <button class="copy-btn" onclick="copyCmd()">copy</button>
+    </div>
+    <div class="install-cmd">
+      <span class="prompt">$</span>
+      <span>mdcode run yourfile.md</span>
+    </div>
+    <p class="install-note">requires python 3.10+ — no pip installs needed</p>
+  </div>
+</section>
+
+<footer>
+  <svg viewBox="0 0 208 128" xmlns="http://www.w3.org/2000/svg" width="52" height="32">
+    <defs>
+      <mask id="mf">
+        <rect width="208" height="128" fill="white"/>
+        <path d="M30 98V30h20l20 25 20-25h20v68H90V59L70 84 50 59v39z" fill="black"/>
+        <polyline points="132,38 118,64 132,90" stroke="black" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <line x1="155" y1="34" x2="143" y2="94" stroke="black" stroke-width="10" stroke-linecap="round"/>
+        <polyline points="168,38 182,64 168,90" stroke="black" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </mask>
+    </defs>
+    <rect width="198" height="118" x="5" y="5" ry="10" fill="#555" mask="url(#mf)"/>
+  </svg>
+  <span>MDCode — made by <a href="https://github.com/jhu7600codes" target="_blank">jhu7600codes</a></span>
+  <div class="spacer"></div>
+  <a href="https://github.com/jhu7600codes/mdcode" target="_blank">GitHub</a>
+  <a href="https://github.com/jhu7600codes/mdcode/tree/main/examples" target="_blank">Examples</a>
+</footer>
+
+<script>
+function heroCopy() {
+  navigator.clipboard.writeText(document.getElementById('hero-cmd').textContent.trim());
+  const btn = document.querySelector('.hero-install-cmd .copy-btn');
+  btn.textContent = 'copied!';
+  setTimeout(() => btn.textContent = 'copy', 2000);
+}
+function copyCmd() {
+  navigator.clipboard.writeText(document.getElementById('cmd-text').textContent.trim());
+  const btn = document.querySelector('.copy-btn');
+  btn.textContent = 'copied!';
+  setTimeout(() => btn.textContent = 'copy', 2000);
+}
+function toggleStep(header) {
+  header.parentElement.classList.toggle('open');
+}
+</script>
+</body>
+</html>
